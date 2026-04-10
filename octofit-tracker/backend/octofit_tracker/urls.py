@@ -1,3 +1,4 @@
+# Codespace API endpoint format example: https://$CODESPACE_NAME-8000.app.github.dev/api/[component]/
 """octofit_tracker URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
