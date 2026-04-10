@@ -1,10 +1,10 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Activities from '../../../../../frontend/src/components/Activities';
-import Leaderboard from '../../../../../frontend/src/components/Leaderboard';
-import Teams from '../../../../../frontend/src/components/Teams';
-import Users from '../../../../../frontend/src/components/Users';
-import Workouts from '../../../../../frontend/src/components/Workouts';
+import Activities from './components/Activities';
+import Leaderboard from './components/Leaderboard';
+import Teams from './components/Teams';
+import Users from './components/Users';
+import Workouts from './components/Workouts';
 
 function App() {
   return (
