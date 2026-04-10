@@ -17,28 +17,23 @@ class Command(BaseCommand):
     help = 'Populate the octofit_db database with test data.'
 
     def handle(self, *args, **options):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        # Delete all data
+        from django.contrib.auth.models import User
+        from octofit_tracker.models.user import Profile
         activity.Activity.objects.all().delete()
         workout.Workout.objects.all().delete()
         team.Team.objects.all().delete()
+        Profile.objects.all().delete()
         User.objects.all().delete()
-        # Create teams Marvel and DC
         self.create_teams()
-        # Create users (superheroes)
         users = self.create_users()
-        # Create workouts
         workouts = self.create_workouts()
-        # Create activities
         self.create_activities(users, workouts)
-        # Update leaderboard
         self.create_leaderboard()
         self.stdout.write(self.style.SUCCESS('Database populated with initial data.'))
 
     def create_users(self):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
+        from django.contrib.auth.models import User
+        from octofit_tracker.models.user import Profile
         users = [
             {"username": "superman", "email": "superman@dc.com", "password": "krypton", "is_superuser": True, "is_superhero": True, "team": "DC"},
             {"username": "batman", "email": "batman@dc.com", "password": "wayne", "is_superhero": True, "team": "DC"},
@@ -49,12 +44,12 @@ class Command(BaseCommand):
         ]
         user_objs = []
         for u in users:
-            obj, created = User.objects.get_or_create(username=u["username"], defaults={"email": u["email"], "team": u["team"]})
+            obj, created = User.objects.get_or_create(username=u["username"], defaults={"email": u["email"]})
             if created:
                 obj.set_password(u["password"])
                 obj.is_superuser = u.get("is_superuser", False)
-                obj.is_superhero = u.get("is_superhero", False)
                 obj.save()
+            Profile.objects.update_or_create(user=obj, defaults={"team": u["team"], "is_superhero": u.get("is_superhero", False)})
             user_objs.append(obj)
         return user_objs
 
@@ -82,13 +77,15 @@ class Command(BaseCommand):
         return workout_objs
 
     def create_activities(self, users, workouts):
+        import datetime
         activities = [
-            {"user": users[0], "workout": workouts[0], "duration": 10, "calories": 50},
-            {"user": users[1], "workout": workouts[1], "duration": 30, "calories": 200},
-            {"user": users[2], "workout": workouts[2], "duration": 5, "calories": 30},
+            {"user": users[0].username, "type": workouts[0].name, "duration": 10},
+            {"user": users[1].username, "type": workouts[1].name, "duration": 30},
+            {"user": users[2].username, "type": workouts[2].name, "duration": 5},
         ]
+        today = datetime.date.today()
         for a in activities:
-            activity.Activity.objects.create(user=a["user"], workout=a["workout"], duration=a["duration"], calories=a["calories"])
+            activity.Activity.objects.create(user=a["user"], type=a["type"], duration=a["duration"], date=today)
 
     def create_leaderboard(self):
         leaderboard.update_leaderboard()
